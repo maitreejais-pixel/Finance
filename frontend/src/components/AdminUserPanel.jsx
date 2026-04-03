@@ -10,7 +10,10 @@ export default function AdminUserPanel() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
-        const res = await axios.get("http://localhost:5000/api/admin/users", {
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || "https://zorvyn-finance.onrender.com";
+
+        const res = await axios.get(`${API_BASE_URL}/api/admin/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUsers(res.data);
