@@ -19,6 +19,7 @@ const io = socketIo(server, {
   cors: {
     origin: [
       "https://zorvyn-finance-frontend.onrender.com",
+      "https://zorvyn-finance-frontend.onrender.com/",
       "http://localhost:5173",
     ],
     methods: ["GET", "POST", "DELETE"],
@@ -31,6 +32,7 @@ app.use(
   cors({
     origin: [
       "https://zorvyn-finance-frontend.onrender.com",
+      "https://zorvyn-finance-frontend.onrender.com/", // With trailing slash
       "http://localhost:5173",
     ],
     credentials: true,
