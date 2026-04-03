@@ -5,26 +5,31 @@ const roleSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      enum: ["viewer", "editor", "admin"],
+      // Rebranded 'editor' to 'analyst' for the Finance context
+      enum: ["viewer", "analyst", "admin"],
       unique: true,
     },
     description: String,
     permissions: [
       {
-        resource: String, // 'videos', 'users', 'settings'
+        resource: {
+          type: String,
+          // Updated from 'videos' to 'records'
+          enum: ["records", "users", "analytics", "settings"],
+        },
         actions: [String], // 'read', 'create', 'update', 'delete'
       },
     ],
     organization: {
       type: String,
-      default: "default-org",
+      default: "zorvyn-org", // Updated default org name
     },
   },
   { timestamps: true },
 );
 
 // Static method: Get role by name
-roleSchema.statics.findByName = function (name, organization = "default-org") {
+roleSchema.statics.findByName = function (name, organization = "zorvyn-org") {
   return this.findOne({ name, organization });
 };
 

@@ -1,45 +1,61 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-export const useSocket = (videoId) => {
+/**
+ * ZORVYN LIVE AUDIT HOOK
+ * Connects to the backend via WebSockets to track real-time
+ * transaction verification and risk assessment.
+ */
+export const useSocket = (recordId) => {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("");
+  const [auditStep, setAuditStep] = useState("");
 
   useEffect(() => {
-    // 1. Exit if there is no videoId
-    if (!videoId) return;
+    // 1. Exit if there is no active record to track
+    if (!recordId) {
+      setProgress(0);
+      setStatus("");
+      setAuditStep("");
+      return;
+    }
 
-    // 2. Connect to the backend
-    const socket = io(API_BASE_URL);
+    // 2. Establish connection to Zorvyn Analytics Engine
+    const socket = io(API_BASE_URL, {
+      withCredentials: true,
+    });
 
-    // 3. Join the specific room for this video
-    socket.emit("join-room", videoId);
+    // 3. Join the secure room for this specific transaction
+    socket.emit("join-record-room", recordId);
 
-    // 4. Listen for progress updates (1, 2, 3... 100)
+    // 4. Listen for live audit updates
     socket.on("progress", (data) => {
-      // Check to make sure we are updating the RIGHT video
-      if (data.videoId === videoId) {
+      // Ensure we are only updating the record currently in focus
+      if (data.recordId === recordId) {
         setProgress(data.progress);
-        setStatus(data.status);
+        setStatus(data.status); // e.g., 'verifying'
+        setAuditStep(data.step); // e.g., 'Checking Merchant ID'
       }
     });
 
-    // 5. Listen for the completion event
+    // 5. Listen for the Final Audit Completion
     socket.on("complete", (data) => {
-      if (data.videoId === videoId) {
+      if (data.recordId === recordId) {
         setProgress(100);
-        setStatus(data.status);
+        setStatus(data.status); // e.g., 'verified' or 'flagged'
+        setAuditStep("Audit Complete");
       }
     });
 
-    // 6. Cleanup: Important to stop multiple sockets from opening
+    // 6. Security Cleanup: Disconnect on unmount to prevent memory leaks
     return () => {
       socket.off("progress");
       socket.off("complete");
       socket.disconnect();
     };
-  }, [videoId]); // Re-run whenever the videoId changes
+  }, [recordId]);
 
-  return { progress, setProgress, status, setStatus };
+  return { progress, setProgress, status, setStatus, auditStep };
 };
