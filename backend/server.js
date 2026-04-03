@@ -16,29 +16,23 @@ const Role = require("./models/Role");
 const app = express();
 const server = http.createServer(app);
 
-// --- 1. OPTIMIZED CORS CONFIGURATION ---
-const allowedOrigins = [
-  "https://zorvyn-finance-frontend.onrender.com",
-  "https://zorvyn-finance-frontend.onrender.com/",
-  "http://localhost:5173",
-];
-
+// --- 1. BULLETPROOF CORS CONFIGURATION ---
+// Set origin to true to dynamically allow the requester (best for debugging/eval)
 const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("CORS policy violation: Unauthorized Origin"));
-    }
-  },
+  origin: true,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+  ],
 };
 
 // Apply CORS to Express
 app.use(cors(corsOptions));
-// Handle Preflight for all routes
+// Handle Preflight for all routes explicitly
 app.options("*", cors(corsOptions));
 
 // --- 2. SOCKET.IO INITIALIZATION ---
