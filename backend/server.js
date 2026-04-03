@@ -16,47 +16,67 @@ const Role = require("./models/Role");
 const app = express();
 const server = http.createServer(app);
 
-// --- 1. BULLETPROOF CORS CONFIGURATION ---
-// Set origin to true to dynamically allow the requester (best for debugging/eval)
+/**
+ * 🛠️ FINAL PRODUCTION-READY CORS CONFIG
+ */
+const allowedOrigins = [
+  "https://zorvyn-finance-frontend.onrender.com",
+  "http://localhost:5173",
+];
+
 const corsOptions = {
-  origin: true,
-  credentials: true,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (Postman, mobile apps, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-  ],
+  allowedHeaders: ["Content-Type", "Authorization"],
 };
 
-// Apply CORS to Express
+// Apply CORS
 app.use(cors(corsOptions));
-// Handle Preflight for all routes explicitly
 app.options("*", cors(corsOptions));
-
-// --- 2. SOCKET.IO INITIALIZATION ---
-const io = socketIo(server, {
-  cors: corsOptions,
-  transports: ["websocket", "polling"],
-});
 
 app.use(express.json());
 
-// --- 3. DIRECTORY & STORAGE SETUP ---
+/**
+ * 🔌 SOCKET.IO SETUP
+ */
+const io = socketIo(server, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+  },
+  transports: ["websocket", "polling"],
+});
+
+/**
+ * 📁 DIRECTORY SETUP
+ */
 const uploadDir = "./uploads/receipts";
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log("📁 Created Zorvyn Storage directory");
 }
 
-// --- 4. DATABASE CONNECTION ---
+/**
+ * 🗄️ DATABASE CONNECTION
+ */
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Zorvyn Database Connected"))
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
-// --- 5. ROLE INITIALIZATION ---
+/**
+ * 🛡️ ROLE INITIALIZATION
+ */
 const initRoles = async () => {
   try {
     const roles = [
@@ -85,9 +105,10 @@ const initRoles = async () => {
     for (let roleData of roles) {
       await Role.findOneAndUpdate({ name: roleData.name }, roleData, {
         upsert: true,
-        new: true,
+        returnDocument: "after", // ✅ FIXED deprecation warning
       });
     }
+
     console.log("✅ Zorvyn Roles Initialized");
   } catch (error) {
     console.error("❌ Role Initialization Failed:", error);
@@ -96,7 +117,9 @@ const initRoles = async () => {
 
 mongoose.connection.once("open", initRoles);
 
-// --- 6. SOCKET.IO LOGIC ---
+/**
+ * 🔌 SOCKET EVENTS
+ */
 io.on("connection", (socket) => {
   console.log("👤 Analyst Connected:", socket.id);
 
@@ -105,12 +128,16 @@ io.on("connection", (socket) => {
     console.log(`📊 Tracking Audit for Record: ${recordId}`);
   });
 
-  socket.on("disconnect", () => console.log("👤 User Disconnected"));
+  socket.on("disconnect", () => {
+    console.log("👤 User Disconnected");
+  });
 });
 
 app.set("io", io);
 
-// --- 7. ROUTES ---
+/**
+ * 🌐 ROUTES
+ */
 app.get("/", (req, res) => {
   res.send("🚀 Zorvyn Finance Backend is running and healthy!");
 });
@@ -120,17 +147,23 @@ app.use("/api/records", recordRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/admin", adminRoutes);
 
-// --- 8. ERROR HANDLING ---
+/**
+ * ⚠️ GLOBAL ERROR HANDLER
+ */
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error("❌ GLOBAL ERROR:", err.message);
+
   res.status(500).json({
     error: "Zorvyn Internal Server Error",
     details: process.env.NODE_ENV === "development" ? err.message : undefined,
   });
 });
 
-// --- 9. SERVER START ---
+/**
+ * 🚀 SERVER START
+ */
 const PORT = process.env.PORT || 5000;
+
 server.listen(PORT, () => {
   console.log(`🚀 Zorvyn Finance running on Port: ${PORT}`);
 });
