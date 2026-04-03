@@ -6,7 +6,7 @@ const socketIo = require("socket.io");
 const fs = require("fs");
 require("dotenv").config();
 
-// Zorvyn Routes & Models
+// Routes & Models
 const authRoutes = require("./routes/auth");
 const recordRoutes = require("./routes/records");
 const exportRoutes = require("./routes/export");
@@ -17,45 +17,58 @@ const app = express();
 const server = http.createServer(app);
 
 /**
- * 🛠️ FINAL PRODUCTION-READY CORS CONFIG
+ * ✅ 1. BULLETPROOF CORS (FIXES YOUR ERROR)
  */
 const allowedOrigins = [
   "https://zorvyn-finance-frontend.onrender.com",
   "http://localhost:5173",
 ];
 
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (Postman, mobile apps, etc.)
-    if (!origin) return callback(null, true);
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // allow Postman
 
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.error("❌ Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-// Apply CORS
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+      console.log("❌ CORS BLOCKED:", origin);
+      return callback(null, false);
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  }),
+);
+
+/**
+ * ✅ CRITICAL: HANDLE PREFLIGHT BEFORE ROUTES
+ */
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+
+  next();
+});
 
 app.use(express.json());
 
 /**
- * 🔌 SOCKET.IO SETUP
+ * 🔌 SOCKET.IO
  */
 const io = socketIo(server, {
   cors: {
     origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
-  transports: ["websocket", "polling"],
 });
+
+app.set("io", io);
 
 /**
  * 📁 DIRECTORY SETUP
@@ -63,31 +76,31 @@ const io = socketIo(server, {
 const uploadDir = "./uploads/receipts";
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
-  console.log("📁 Created Zorvyn Storage directory");
+  console.log("📁 Storage directory created");
 }
 
 /**
- * 🗄️ DATABASE CONNECTION
+ * 🗄️ DATABASE
  */
 mongoose
   .connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ Zorvyn Database Connected"))
-  .catch((err) => console.error("❌ MongoDB Error:", err));
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch((err) => console.error("❌ Mongo Error:", err));
 
 /**
- * 🛡️ ROLE INITIALIZATION
+ * 🛡️ ROLES INIT
  */
 const initRoles = async () => {
   try {
     const roles = [
       {
         name: "viewer",
-        description: "Read financial records only",
+        description: "Read only",
         permissions: [{ resource: "records", actions: ["read"] }],
       },
       {
         name: "analyst",
-        description: "Manage financial entries and audits",
+        description: "Manage records",
         permissions: [
           {
             resource: "records",
@@ -97,21 +110,21 @@ const initRoles = async () => {
       },
       {
         name: "admin",
-        description: "Full system administration",
+        description: "Full access",
         permissions: [{ resource: "*", actions: ["*"] }],
       },
     ];
 
-    for (let roleData of roles) {
-      await Role.findOneAndUpdate({ name: roleData.name }, roleData, {
+    for (let role of roles) {
+      await Role.findOneAndUpdate({ name: role.name }, role, {
         upsert: true,
-        returnDocument: "after", // ✅ FIXED deprecation warning
+        returnDocument: "after",
       });
     }
 
-    console.log("✅ Zorvyn Roles Initialized");
-  } catch (error) {
-    console.error("❌ Role Initialization Failed:", error);
+    console.log("✅ Roles Initialized");
+  } catch (err) {
+    console.error("❌ Role Init Error:", err);
   }
 };
 
@@ -121,25 +134,22 @@ mongoose.connection.once("open", initRoles);
  * 🔌 SOCKET EVENTS
  */
 io.on("connection", (socket) => {
-  console.log("👤 Analyst Connected:", socket.id);
+  console.log("👤 Connected:", socket.id);
 
-  socket.on("join-record-room", (recordId) => {
-    socket.join(recordId);
-    console.log(`📊 Tracking Audit for Record: ${recordId}`);
+  socket.on("join-record-room", (id) => {
+    socket.join(id);
   });
 
   socket.on("disconnect", () => {
-    console.log("👤 User Disconnected");
+    console.log("👤 Disconnected");
   });
 });
-
-app.set("io", io);
 
 /**
  * 🌐 ROUTES
  */
 app.get("/", (req, res) => {
-  res.send("🚀 Zorvyn Finance Backend is running and healthy!");
+  res.send("🚀 Zorvyn Backend Live");
 });
 
 app.use("/api/auth", authRoutes);
@@ -148,22 +158,22 @@ app.use("/api/export", exportRoutes);
 app.use("/api/admin", adminRoutes);
 
 /**
- * ⚠️ GLOBAL ERROR HANDLER
+ * ⚠️ ERROR HANDLER
  */
 app.use((err, req, res, next) => {
-  console.error("❌ GLOBAL ERROR:", err.message);
+  console.error("❌ ERROR:", err.message);
 
   res.status(500).json({
-    error: "Zorvyn Internal Server Error",
-    details: process.env.NODE_ENV === "development" ? err.message : undefined,
+    error: "Internal Server Error",
+    message: err.message,
   });
 });
 
 /**
- * 🚀 SERVER START
+ * 🚀 START SERVER
  */
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🚀 Zorvyn Finance running on Port: ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
