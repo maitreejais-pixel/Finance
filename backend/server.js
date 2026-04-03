@@ -3,96 +3,106 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const http = require("http");
 const socketIo = require("socket.io");
-const path = require("path");
 const fs = require("fs");
 require("dotenv").config();
 
 // Zorvyn Routes & Models
 const authRoutes = require("./routes/auth");
 const recordRoutes = require("./routes/records");
-const exportRoutes = require("./routes/export"); // Replaces streaming
+const exportRoutes = require("./routes/export");
+const adminRoutes = require("./routes/admin");
 const Role = require("./models/Role");
-const adminRoutes = require("./routes/admin"); // This "defines" the variable
+
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
-  cors: {
-    origin: [
-      "https://zorvyn-finance-frontend.onrender.com",
-      "https://zorvyn-finance-frontend.onrender.com/",
-      "http://localhost:5173",
-    ],
-    methods: ["GET", "POST", "DELETE"],
-    credentials: true,
+
+// --- 1. OPTIMIZED CORS CONFIGURATION ---
+const allowedOrigins = [
+  "https://zorvyn-finance-frontend.onrender.com",
+  "https://zorvyn-finance-frontend.onrender.com/",
+  "http://localhost:5173",
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS policy violation: Unauthorized Origin"));
+    }
   },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+// Apply CORS to Express
+app.use(cors(corsOptions));
+// Handle Preflight for all routes
+app.options("*", cors(corsOptions));
+
+// --- 2. SOCKET.IO INITIALIZATION ---
+const io = socketIo(server, {
+  cors: corsOptions,
+  transports: ["websocket", "polling"],
 });
 
-// Middleware
-app.use(
-  cors({
-    origin: [
-      "https://zorvyn-finance-frontend.onrender.com",
-      "https://zorvyn-finance-frontend.onrender.com/", // With trailing slash
-      "http://localhost:5173",
-    ],
-    credentials: true,
-  }),
-);
 app.use(express.json());
 
-// Ensure the receipts/exports directory exists
+// --- 3. DIRECTORY & STORAGE SETUP ---
 const uploadDir = "./uploads/receipts";
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
   console.log("📁 Created Zorvyn Storage directory");
 }
 
-// MongoDB Connection
+// --- 4. DATABASE CONNECTION ---
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Zorvyn Database Connected"))
   .catch((err) => console.error("❌ MongoDB Error:", err));
 
-/**
- * ZORVYN ROLE INITIALIZATION
- * Rebranded from Video Editor to Financial Analyst
- */
+// --- 5. ROLE INITIALIZATION ---
 const initRoles = async () => {
-  const roles = [
-    {
-      name: "viewer",
-      description: "Read financial records only",
-      permissions: [{ resource: "records", actions: ["read"] }],
-    },
-    {
-      name: "analyst", // Rebranded from 'editor'
-      description: "Manage financial entries and audits",
-      permissions: [
-        {
-          resource: "records",
-          actions: ["read", "create", "update", "delete"],
-        },
-      ],
-    },
-    {
-      name: "admin",
-      description: "Full system administration",
-      permissions: [{ resource: "*", actions: ["*"] }],
-    },
-  ];
+  try {
+    const roles = [
+      {
+        name: "viewer",
+        description: "Read financial records only",
+        permissions: [{ resource: "records", actions: ["read"] }],
+      },
+      {
+        name: "analyst",
+        description: "Manage financial entries and audits",
+        permissions: [
+          {
+            resource: "records",
+            actions: ["read", "create", "update", "delete"],
+          },
+        ],
+      },
+      {
+        name: "admin",
+        description: "Full system administration",
+        permissions: [{ resource: "*", actions: ["*"] }],
+      },
+    ];
 
-  for (let roleData of roles) {
-    await Role.findOneAndUpdate({ name: roleData.name }, roleData, {
-      upsert: true,
-      new: true,
-    });
+    for (let roleData of roles) {
+      await Role.findOneAndUpdate({ name: roleData.name }, roleData, {
+        upsert: true,
+        new: true,
+      });
+    }
+    console.log("✅ Zorvyn Roles Initialized");
+  } catch (error) {
+    console.error("❌ Role Initialization Failed:", error);
   }
-  console.log("✅ Zorvyn Roles Initialized");
 };
 
 mongoose.connection.once("open", initRoles);
 
-// Socket.IO for Real-time Audit Progress
+// --- 6. SOCKET.IO LOGIC ---
 io.on("connection", (socket) => {
   console.log("👤 Analyst Connected:", socket.id);
 
@@ -106,24 +116,27 @@ io.on("connection", (socket) => {
 
 app.set("io", io);
 
-// Health Check
+// --- 7. ROUTES ---
 app.get("/", (req, res) => {
   res.send("🚀 Zorvyn Finance Backend is running and healthy!");
 });
 
-// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/records", recordRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Global Error Handler
+// --- 8. ERROR HANDLING ---
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: "Zorvyn Internal Server Error" });
+  res.status(500).json({
+    error: "Zorvyn Internal Server Error",
+    details: process.env.NODE_ENV === "development" ? err.message : undefined,
+  });
 });
 
+// --- 9. SERVER START ---
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Zorvyn Finance running on http://localhost:${PORT}`);
+  console.log(`🚀 Zorvyn Finance running on Port: ${PORT}`);
 });
