@@ -60,7 +60,6 @@ The **New Transaction** interface provides a detailed data entry terminal:
 | **GET** | `/api/admin/users` | (Admin Only) View all registered analysts |
 | **GET** | `/api/records/summary` | Fetch aggregated totals (Income/Expense/Net) |
 
----
 
 ## ⚙️ Environment Variables
 Create a `.env` file in the **backend** directory:
@@ -71,7 +70,7 @@ MONGO_URI=your_mongodb_atlas_uri
 JWT_SECRET=your_secure_jwt_string
 NODE_ENV=production
 
----
+
 
 ## 💻 Local Development
 
@@ -87,7 +86,6 @@ cd frontend
 npm install
 npm run dev
 
----
 
 ## 🚀 **DEPLOYMENT STRATEGY**
 
@@ -96,7 +94,6 @@ npm run dev
 * **Vite-React Frontend:** Deployed as a **Static Site** with routing redirects to `index.html` to support client-side navigation.
 * **Node.js Backend:** Deployed as a **Web Service**, communicating via a secure **REST API** with custom **CORS** configurations to authorize the frontend origin.
 
----
 
 ## 🧠 **INTERVIEW EXPLANATION**
 
@@ -107,6 +104,5 @@ npm run dev
 * **Security First:** Implementation of **JWT-based authentication** and **Role-Based Access Control (RBAC)** to safeguard sensitive financial data.
 * **Cloud Infrastructure:** Successful configuration of production environments, including environment variable management and **CORS policy enforcement** on Render.
 
----
 
 **Project developed by Maitree Jaiswal — 2026**
