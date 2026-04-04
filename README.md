@@ -89,8 +89,6 @@ npm run dev
 
 ---
 
----
-
 ## 🚀 **DEPLOYMENT STRATEGY**
 
 > **The application follows a decoupled architecture, deployed on Render as two separate, secure services:**
