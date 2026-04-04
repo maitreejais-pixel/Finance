@@ -111,19 +111,15 @@ npm run dev
 ## 🚀 Deployment
 
 The application follows a decoupled architecture, deployed on Render as two separate, secure services:
-
-*Vite-React Frontend: Deployed as a Static Site with routing redirects to index.html to support client-side navigation.
-
-*Node.js Backend: Deployed as a Web Service, communicating via a secure REST API with custom CORS configurations to authorize the frontend origin.
+* Vite-React Frontend: Deployed as a Static Site with routing redirects to index.html to support client-side navigation.
+* Node.js Backend: Deployed as a Web Service, communicating via a secure REST API with custom CORS configurations to authorize the frontend origin.
 
 ---
 
 ## 💡 📝 Design Assumptions & Trade-offs
-*Analyst Autonomy: Analysts are granted the ability to delete their own records to ensure they can fix data entry errors without requiring Admin intervention.
-
-*Enterprise Readiness: The Viewer and Editor roles are already modeled in the database, allowing for immediate UI activation without backend structural changes.
-
-*Cloud Strategy: Chose MongoDB Atlas over a local store to demonstrate real-world cloud connection handling.
+* Analyst Autonomy: Analysts are granted the ability to delete their own records to ensure they can fix data entry errors without requiring Admin intervention.
+* Enterprise Readiness: The Viewer and Editor roles are already modeled in the database, allowing for immediate UI activation without backend structural changes.
+* Cloud Strategy: Chose MongoDB Atlas over a local store to demonstrate real-world cloud connection handling.
 
  ---
 
@@ -132,14 +128,10 @@ The application follows a decoupled architecture, deployed on Render as two sepa
 
 This project demonstrates:
 * This project demonstrates high-level proficiency in:
-
-*Full-stack Architecture: Seamless integration and state management between a React frontend and a Node.js/Express backend.
-
-*Complex Data Modeling: Leveraging the MongoDB Aggregation Pipeline to serve real-time financial summaries and category-wise totals.
-
-*Security First: Implementation of JWT-based authentication and Role-Based Access Control (RBAC) to safeguard sensitive financial data.
-
-*Cloud Infrastructure: Successful configuration of production environments, including environment variable management and CORS policy enforcement on Render.
+* Full-stack Architecture: Seamless integration and state management between a React frontend and a Node.js/Express backend.
+* Complex Data Modeling: Leveraging the MongoDB Aggregation Pipeline to serve real-time financial summaries and category-wise totals.
+* Security First: Implementation of JWT-based authentication and Role-Based Access Control (RBAC) to safeguard sensitive financial data.
+* Cloud Infrastructure: Successful configuration of production environments, including environment variable management and CORS policy enforcement on Render.
 
 ---
 
