@@ -131,7 +131,7 @@ The application follows a decoupled architecture, deployed on Render as two sepa
 ## 🧠 Interview Explanation
 
 This project demonstrates:
-*This project demonstrates high-level proficiency in:
+* This project demonstrates high-level proficiency in:
 
 *Full-stack Architecture: Seamless integration and state management between a React frontend and a Node.js/Express backend.
 
