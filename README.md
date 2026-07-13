@@ -1,4 +1,4 @@
-# 🏦 Zorvyn Finance: Secure Audit & Ledger System
+# 🏦 Finance: Secure Audit & Ledger System
 
 **Backend Live URL:** [https://zorvyn-finance.onrender.com/](https://zorvyn-finance.onrender.com/)  
 **Frontend Live URL:** [https://zorvyn-finance-frontend.onrender.com](https://zorvyn-finance-frontend.onrender.com)
