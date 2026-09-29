@@ -33,7 +33,7 @@ export default function Login() {
       navigate("/dashboard");
     } catch (err) {
       setError(
-        err.response?.data?.error || "Connection refused by Zorvyn Gateway.",
+        err.response?.data?.error || "Connection refused by Finance Gateway.",
       );
     } finally {
       setLoading(false);
@@ -47,11 +47,11 @@ export default function Login() {
           {/* LOGO INTEGRATION */}
           <img
             src={zorvynLogo}
-            alt="Zorvyn Logo"
+            alt="Finance Logo"
             className="h-16 mx-auto mb-6 object-contain drop-shadow-sm"
           />
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter">
-            ZORVYN <span className="text-blue-600">FINANCE</span>
+            FINANCE <span className="text-blue-600">FINANCE</span>
           </h1>
           <p className="text-slate-400 font-bold text-[10px] mt-2 uppercase tracking-[0.3em]">
             Secure Analyst Portal

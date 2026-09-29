@@ -141,11 +141,11 @@ export default function Dashboard() {
       {/* --- REBRANDED HEADER --- */}
       <header className="mb-8 flex justify-between items-center bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm">
         <div className="flex items-center gap-4">
-          <img src={zorvynLogo} alt="Zorvyn Finance" className="h-10 w-auto" />
+          <img src={zorvynLogo} alt="Finance" className="h-10 w-auto" />
           <div className="h-8 w-[1px] bg-gray-200 hidden sm:block"></div>
           <div>
             <h1 className="text-xl font-black text-gray-900 leading-none tracking-tight">
-              ZORVYN <span className="text-blue-600">FINANCE</span>
+              FINANCE <span className="text-blue-600">FINANCE</span>
             </h1>
             <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">
               Audit Terminal v2.4
@@ -356,7 +356,7 @@ export default function Dashboard() {
                 </h3>
                 <p className="text-sm leading-relaxed text-gray-400 max-w-[280px]">
                   {currentRecordId
-                    ? "Zorvyn AI is currently validating this transaction against compliance databases."
+                    ? "Finance AI is currently validating this transaction against compliance databases."
                     : "Select an entry from the ledger to view the detailed risk assessment and audit trails."}
                 </p>
               </div>

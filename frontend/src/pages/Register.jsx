@@ -63,11 +63,11 @@ export default function Register() {
           {/* LOGO INTEGRATION */}
           <img
             src={zorvynLogo}
-            alt="Zorvyn Logo"
+            alt="Finance Logo"
             className="h-14 mx-auto mb-6 object-contain"
           />
           <h1 className="text-3xl font-black text-slate-900 tracking-tighter">
-            JOIN <span className="text-blue-600">ZORVYN</span>
+            JOIN <span className="text-blue-600">FINANCE</span>
           </h1>
           <p className="text-slate-400 font-bold text-[10px] mt-2 uppercase tracking-[0.3em]">
             Analyst Onboarding Portal

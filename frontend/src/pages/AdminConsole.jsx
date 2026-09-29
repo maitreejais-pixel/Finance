@@ -33,7 +33,7 @@ export default function AdminConsole() {
           </button>
           <div>
             <h1 className="text-2xl font-black text-gray-900 leading-none tracking-tight">
-              ZORVYN <span className="text-red-600">ADMIN TERMINAL</span>
+              FINANCE <span className="text-red-600">ADMIN TERMINAL</span>
             </h1>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.4em] mt-2">
               System Wide Governance & Audit
